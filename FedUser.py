@@ -20,7 +20,7 @@ class CDPUser:
         self.train_dataloader = train_dataloader
         self.loss_fn = torch.nn.CrossEntropyLoss()
         self.disc_lr = disc_lr
-        self.acc_metric = torchmetrics.Accuracy().to(device)
+        self.acc_metric = torchmetrics.Accuracy(task="multiclass", num_classes=10).to(device)
         self.device = device
         self.max_norm= max_norm
         self.epochs = epochs

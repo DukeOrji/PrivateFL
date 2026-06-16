@@ -38,7 +38,7 @@ class CDPServer:
             norms = self.get_median_norm(weights)
             if self.agg == False:
                 for k, v in self.get_model_state_dict().items():
-                    if 'bn' not in k and 'norm' not in k and 'downsample.1' not in k:
+                    if 'bn' not in k and 'norm' not in k and 'downsample.1' not in k and "running_mean" not in k and "running_var" not in k:
                         sumed_grad = torch.zeros_like(v)
                         for i in range(len(weights)):
                             grad = weights[i][k]-v
@@ -50,7 +50,7 @@ class CDPServer:
                         self.model.state_dict()[k].data.copy_(value.detach().clone())
             else:
                 for k, v in self.get_model_state_dict().items():
-                    if 'bn' not in k:
+                    if 'bn' not in k and "running_mean" not in k and "running_var" not in k and "num_batches_tracked" not in k:
                         sumed_grad = torch.zeros_like(v)
                         for i in range(len(weights)):
                             grad = weights[i][k]-v

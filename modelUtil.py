@@ -1,5 +1,5 @@
 import torch
-from torchvision.models import alexnet, resnet18
+from torchvision.models import alexnet, resnet18, mobilenet_v3_small, shufflenet_v2_x1_0, ShuffleNet_V2_X1_0_Weights, MobileNet_V3_Small_Weights
 from torch.nn.functional import relu, softmax, max_pool2d
 from torch.nn.utils import spectral_norm
 from torch import nn, tanh
@@ -57,7 +57,67 @@ class resnet18(torch.nn.Module):
     def forward(self, x):
         logits = self.backbone(x)
         return logits, softmax(logits, dim=-1)
-
+    
+class ShuffleNet(nn.Module):
+    def __init__(self, num_classes=10):
+        super().__init__()
+ 
+        self.backbone = torchvision.models.shufflenet_v2_x1_0(
+            weights=ShuffleNet_V2_X1_0_Weights.DEFAULT
+        )
+ 
+        for p in self.backbone.parameters():
+            p.requires_grad = False
+ 
+        in_features = self.backbone.fc.in_features
+        self.backbone.fc = nn.Identity()
+ 
+        self.fc = nn.Sequential(
+            nn.Linear(in_features, 256),
+            nn.ReLU(),
+            nn.Dropout(p=0.2),
+            nn.Linear(256, num_classes)
+        )
+ 
+    def forward(self, x):
+        features = self.backbone(x)
+        logits = self.fc(features)
+        return logits, softmax(logits, dim=-1)
+    
+    
+class MobileNetV3Small(nn.Module):
+    def __init__(self, num_classes=10):
+        super().__init__()
+ 
+        self.backbone = torchvision.models.mobilenet_v3_small(
+            weights=MobileNet_V3_Small_Weights.DEFAULT
+        )
+ 
+        for p in self.backbone.parameters():
+            p.requires_grad = False
+ 
+        # The last layer of MobileNetV3_Small's classifier is at index 3
+        in_features = self.backbone.classifier[3].in_features
+        # Replace the original classifier with a new one for fine-tuning
+        self.backbone.classifier = nn.Sequential(
+            *list(self.backbone.classifier.children())[:-1] # Keep all layers except the last
+        )
+ 
+        # Directly define the new classification head
+        self.fc = nn.Sequential(
+            nn.Linear(in_features, 256),
+            nn.ReLU(),
+           #nn.Dropout(p=0.2),
+            nn.Linear(256, num_classes)
+        )
+ 
+    def forward(self, x):
+        # Pass through the backbone to get features
+        features = self.backbone(x)
+        # Pass features through the new fully connected layer
+        logits = self.fc(features)
+        return logits, softmax(logits, dim=-1)
+    
 class resnet18_IN(torch.nn.Module):
     """Constructs a ResNet-18wIN model.
     """

@@ -233,7 +233,7 @@ def gen_random_loaders(data_name, data_path, num_users, bz, num_classes_per_user
     for i, d in enumerate(datasets):
         if i == 0:
             cls_partitions = gen_classes_per_node(d, num_users, num_classes_per_user)
-            print(cls_partitions)
+            # print(cls_partitions)
             for index in range(num_users):
                 distribution[index][cls_partitions['class'][index]] = cls_partitions['prob'][index]
 
