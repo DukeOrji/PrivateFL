@@ -33,7 +33,7 @@ def parse_arguments():
 
 args = parse_arguments()
 
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda:2' if torch.cuda.is_available() else 'cpu')
 today = date.today().isoformat()
 DATA_NAME = args.data
 NUM_CLIENTS = args.nclient

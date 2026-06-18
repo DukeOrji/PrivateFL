@@ -54,20 +54,32 @@ class resnet18(torch.nn.Module):
         self.backbone = torchvision.models.resnet18(pretrained=True)
         n_ftrs = self.backbone.fc.in_features
         self.backbone.fc = torch.nn.Linear(n_ftrs, num_classes)
+        in_features = self.backbone.fc.in_features
+
+        self.fc = nn.Sequential(
+            nn.Linear(in_features, 256),
+            nn.ReLU(),
+            nn.Dropout(p=0.2),
+            nn.Linear(256, num_classes)
+        )
+
     def forward(self, x):
-        logits = self.backbone(x)
+        features = self.backbone(x)
+        logits = self.fc(features)
         return logits, softmax(logits, dim=-1)
+    
     
 class ShuffleNet(nn.Module):
     def __init__(self, num_classes=10):
         super().__init__()
  
         self.backbone = torchvision.models.shufflenet_v2_x1_0(
-            weights=ShuffleNet_V2_X1_0_Weights.DEFAULT
+            #weights=ShuffleNet_V2_X1_0_Weights.DEFAULT
+            weights=None
         )
  
         for p in self.backbone.parameters():
-            p.requires_grad = False
+            p.requires_grad = True
  
         in_features = self.backbone.fc.in_features
         self.backbone.fc = nn.Identity()
