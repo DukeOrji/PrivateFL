@@ -52,9 +52,10 @@ class resnet18(torch.nn.Module):
     def __init__(self, num_classes):
         super().__init__()
         self.backbone = torchvision.models.resnet18(pretrained=True)
-        n_ftrs = self.backbone.fc.in_features
-        self.backbone.fc = torch.nn.Linear(n_ftrs, num_classes)
         in_features = self.backbone.fc.in_features
+        #n_ftrs = self.backbone.fc.in_features
+        self.backbone.fc = nn.Identity()
+        
 
         self.fc = nn.Sequential(
             nn.Linear(in_features, 256),

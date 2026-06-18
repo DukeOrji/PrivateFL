@@ -45,6 +45,7 @@ class CDPServer:
                             grad = grad*min(1, norms[k]/grad.norm(2))
                             sumed_grad += grad
                         sigma = norms[k] #*self.noise_multiplier
+                        
                         sumed_grad += torch.normal(0, sigma, v.shape)
                         value = v + sumed_grad/self.sample_clients
                         self.model.state_dict()[k].data.copy_(value.detach().clone())
@@ -56,7 +57,7 @@ class CDPServer:
                             grad = weights[i][k]-v
                             grad = grad*min(1, norms[k]/grad.norm(2))
                             sumed_grad += grad
-                        sigma = norms[k]*self.noise_multiplier
+                        sigma = norms[k]#*self.noise_multiplier
                         sumed_grad += torch.normal(0, sigma, v.shape)
                         value = v + sumed_grad/self.sample_clients
                         self.model.state_dict()[k].data.copy_(value.detach().clone())
