@@ -75,28 +75,32 @@ class ShuffleNet(nn.Module):
         super().__init__()
  
         self.backbone = torchvision.models.shufflenet_v2_x1_0(
-            #weights=ShuffleNet_V2_X1_0_Weights.DEFAULT
-            weights=None
+            weights=ShuffleNet_V2_X1_0_Weights.DEFAULT
+            # weights=None
         )
  
         for p in self.backbone.parameters():
-            p.requires_grad = True
+            p.requires_grad = False
  
-        in_features = self.backbone.fc.in_features
+        #in_features = self.backbone.fc.in_features
         self.backbone.fc = nn.Identity()
  
         self.fc = nn.Sequential(
-            nn.Linear(in_features, 256),
+            nn.Linear(1024, 256),
             nn.ReLU(),
             nn.Dropout(p=0.2),
             nn.Linear(256, num_classes)
         )
+
+        nn.init.kaiming_uniform_(self.fc[0].weight, nonlinearity="relu")
+        nn.init.zeros_(self.fc[0].bias)
+        nn.init.kaiming_uniform_(self.fc[3].weight, nonlinearity="relu")
+        nn.init.zeros_(self.fc[3].bias)
  
-    def forward(self, x):
-        features = self.backbone(x)
-        logits = self.fc(features)
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        logits = self.fc(self.backbone(x))
         return logits, softmax(logits, dim=-1)
-    
+      
     
 class MobileNetV3Small(nn.Module):
     def __init__(self, num_classes=10):
